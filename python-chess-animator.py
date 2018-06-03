@@ -23,12 +23,13 @@ except ImportError:
 
 parser = argparse.ArgumentParser(description=__doc__)
 
-parser.add_argument("--id", dest="gameid",
-                    help="game to animate")
+parser.add_argument("--gameid", dest="gameid",
+                    help="game to animate", type=str)
 parser.add_argument("--black", dest="black",nargs='?',
                     default=False,const=True,
                     help="which side to view the game from")
-parser.add_argument("--css", dest="css", type=argparse.FileType("r"))
+parser.add_argument("--css", dest="css", type=argparse.FileType("r"), default="default.css")
+parser.add_argument("--output", dest="output", type=str)
 
 settings = parser.parse_args()
 
@@ -39,7 +40,7 @@ style = settings.css.read() if settings.css else None
 game = read_game(StringIO(result.text))
 size = 360
 
-with imageio.get_writer('movie.gif', mode='I') as writer:
+with imageio.get_writer(settings.output, mode='I', fps=1) as writer:
     node = game
     while not node.is_end():
         nextNode = node.variation(0)
