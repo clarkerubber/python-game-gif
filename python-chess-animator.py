@@ -1,13 +1,7 @@
 from chess.pgn import read_game
 import chess.svg
 
-from IPython.display import SVG
-
 from pprint import pprint
-from typing import List
-from flask import Flask
-
-import numpy as np
 
 import requests
 import argparse
