@@ -17,7 +17,8 @@ except ImportError:
 
 
 parser = argparse.ArgumentParser(description=__doc__)
-
+parser.add_argument("--port", dest="port", default=8080, type=int)
+parser.add_argument("--bind", dest="bind", default="0.0.0.0", type=str)
 parser.add_argument("--css", dest="css", type=argparse.FileType("r"), default="default.css")
 
 settings = parser.parse_args()
@@ -50,4 +51,4 @@ def serve_gif(gameid):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run(host=settings.bind, port=settings.port)
