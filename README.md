@@ -1,8 +1,9 @@
 # python-game-gif
 
 ## Usage
+### Running App
 
-`$ python3 python-chess-animator.py --gameid GjGniszn --output img.gif --css lichess-blue.css`
+`$ python3 python-chess-animator.py --css lichess-blue.css`
 ```
 python3 python-chess-animator.py --help
 usage: python-chess-animator.py [-h] [--gameid GAMEID] [--black [BLACK]]
@@ -10,10 +11,12 @@ usage: python-chess-animator.py [-h] [--gameid GAMEID] [--black [BLACK]]
 
 optional arguments:
   -h, --help       show this help message and exit
-  --gameid GAMEID  game to animate
-  --black [BLACK]  which side to view the game from
   --css CSS
-  --output OUTPUT
 ```
+### Creating Request
+`http://[url]:[port]/[gameid].gif`
+eg
+`http://127.0.0.1:5000/nyMfOUDN.gif`
+
 ## Example
 https://imgur.com/a/LOuyoYU
