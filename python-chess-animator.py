@@ -3,8 +3,6 @@ from tempfile import TemporaryFile
 from chess.pgn import read_game
 import chess.svg
 
-from pprint import pprint
-
 from flask import Flask, send_file
 
 import requests
@@ -47,7 +45,7 @@ def serve_gif(gameid):
             node = nextNode
 
     tempfile.seek(0)
-    
+
     return send_file(tempfile, mimetype='image/gif')
 
 
