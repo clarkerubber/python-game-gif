@@ -39,7 +39,7 @@ def serve_gif(gameid):
     size = 360
     tempfile = TemporaryFile()
 
-    with imageio.get_writer(tempfile, mode='I', format='gif', fps=1) as writer:
+    with imageio.get_writer(tempfile, mode='I', format='gif', fps=0.7) as writer:
         # Add Splash to animation
         splash = create_splash(size, data)
         [writer.append_data(splash) for i in range(2)]
@@ -52,6 +52,8 @@ def serve_gif(gameid):
             board_png = imageio.imread(cairosvg.svg2png(bytestring=board_svg))
             writer.append_data(board_png)
             node = nextNode
+
+        [writer.append_data(splash) for i in range(3)]
 
     tempfile.seek(0)
 
