@@ -17,3 +17,6 @@ Requires Python 3.6+
 
 ## Example
 https://imgur.com/a/LOuyoYU
+
+## Credits
+Special thanks to [michael1241](https://github.com/michael1241/) for helping develop the splash screen.
