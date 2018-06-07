@@ -1,7 +1,7 @@
-
 from PIL import Image, ImageFont, ImageDraw
 from flask import Flask, send_file, request
 from tempfile import TemporaryFile
+from multiprocessing import Pool
 from chess.pgn import read_game
 from numpy import array
 
@@ -11,6 +11,7 @@ import requests
 import argparse
 import cairosvg
 import imageio
+import time
 
 try:
     from StringIO import StringIO
@@ -29,14 +30,22 @@ app = Flask(__name__)
 
 style = settings.css.read() if settings.css else None
 
+size = 360
+
+lightgrey = '#8f8f8f'
+grey = '#acacac'
+darkgrey = '#1a1a1a'
+white = '#fff'
+black = '#000'
+
 
 @app.route('/<gameid>.gif', methods=['GET'])
 def serve_gif(gameid):
     result = requests.get(f'https://lichess.org/game/export/{gameid}')
     data = requests.get(f'https://lichess.org/api/game/{gameid}').json()
 
+    start = time.time()
     game = read_game(StringIO(result.text))
-    size = 360
     tempfile = TemporaryFile()
 
     with imageio.get_writer(tempfile, mode='I', format='gif', fps=0.7) as writer:
@@ -46,24 +55,34 @@ def serve_gif(gameid):
 
         # Game
         node = game
+        boards = []
+
         while not node.is_end():
             nextNode = node.variation(0)
-            board_svg = chess.svg.board(node.board(), coordinates=False, flipped=False, size=size, style=style)
-            board_png = imageio.imread(cairosvg.svg2png(bytestring=board_svg))
-            writer.append_data(board_png)
+            boards.append(node.board())
             node = nextNode
+
+        # perform conversions in parallel
+        with Pool(4) as p:
+            board_svgs = p.map(board_to_svg, boards)
+            board_pngs = p.map(svg_to_png, board_svgs)
+
+        [writer.append_data(imageio.imread(board_png)) for board_png in board_pngs]
 
         [writer.append_data(splash) for i in range(3)]
 
     tempfile.seek(0)
 
+    end = time.time()
+    print(end - start)
+
     return send_file(tempfile, mimetype='image/gif')
 
-lightgrey = '#8f8f8f'
-grey = '#acacac'
-darkgrey = '#1a1a1a'
-white = '#fff'
-black = '#000'
+def svg_to_png(board_svg):
+    return cairosvg.svg2png(bytestring=board_svg)
+
+def board_to_svg(board):
+    return chess.svg.board(board, coordinates=False, size=size, style=style)
 
 def create_splash(size, data):
     splash = Image.new("RGB", (size,size), color = darkgrey)
@@ -112,4 +131,4 @@ def create_splash(size, data):
 
 
 if __name__ == '__main__':
-    app.run(host=settings.bind, port=settings.port, debug=True)
+    app.run(host=settings.bind, port=settings.port)
