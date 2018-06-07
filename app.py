@@ -11,7 +11,6 @@ import requests
 import argparse
 import cairosvg
 import imageio
-import time
 
 try:
     from StringIO import StringIO
@@ -43,10 +42,11 @@ black = '#000'
 def serve_gif(gameid):
     result = requests.get(f'https://lichess.org/game/export/{gameid}')
 
+    start = time.time()
     game = read_game(StringIO(result.text))
     tempfile = TemporaryFile()
 
-    with imageio.get_writer(tempfile, mode='I', format='gif', fps=0.7) as writer:
+    with imageio.get_writer(tempfile, mode='I', format='gif', subrectangles=True, palettesize=16, fps=0.7) as writer:
         # Add Splash to animation
         splash = create_splash(size, game, gameid)
         [writer.append_data(splash) for i in range(2)]
@@ -70,6 +70,8 @@ def serve_gif(gameid):
         [writer.append_data(splash) for i in range(3)]
 
     tempfile.seek(0)
+    end = time.time()
+    print(end - start)
 
     return send_file(tempfile, mimetype='image/gif')
 
