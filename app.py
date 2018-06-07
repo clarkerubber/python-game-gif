@@ -42,15 +42,13 @@ black = '#000'
 @app.route('/<gameid>.gif', methods=['GET'])
 def serve_gif(gameid):
     result = requests.get(f'https://lichess.org/game/export/{gameid}')
-    data = requests.get(f'https://lichess.org/api/game/{gameid}').json()
 
-    start = time.time()
     game = read_game(StringIO(result.text))
     tempfile = TemporaryFile()
 
     with imageio.get_writer(tempfile, mode='I', format='gif', fps=0.7) as writer:
         # Add Splash to animation
-        splash = create_splash(size, data)
+        splash = create_splash(size, game, gameid)
         [writer.append_data(splash) for i in range(2)]
 
         # Game
@@ -73,9 +71,6 @@ def serve_gif(gameid):
 
     tempfile.seek(0)
 
-    end = time.time()
-    print(end - start)
-
     return send_file(tempfile, mimetype='image/gif')
 
 def svg_to_png(board_svg):
@@ -84,7 +79,13 @@ def svg_to_png(board_svg):
 def board_to_svg(board):
     return chess.svg.board(board, coordinates=False, size=size, style=style)
 
-def create_splash(size, data):
+def create_splash(size, game, gameid):
+    whitePlayer = game.headers['White']
+    blackPlayer = game.headers['Black']
+
+    whiteElo = game.headers['WhiteElo']
+    blackElo = game.headers['BlackElo']
+
     splash = Image.new("RGB", (size,size), color = darkgrey)
 
     draw = ImageDraw.Draw(splash)
@@ -101,29 +102,29 @@ def create_splash(size, data):
     splash.paste(logo, (round(size/6), round(size/6)), logo)
 
     ## Link
-    w, h = draw.textsize('lichess.org/'+data['id'], font=font)
+    w, h = draw.textsize('lichess.org/'+gameid, font=font)
 
     draw.text(((size-w)/2 - 10, 300), "lichess", grey, font=lichessfont)
-    draw.text(((size-w)/2 - 10 + 95, 300), ".org/"+data['id'], lightgrey, font=lichessfont)
+    draw.text(((size-w)/2 - 10 + 95, 300), ".org/"+gameid, lightgrey, font=lichessfont)
 
 
     ## Player Text Drop Shadow
     dropShadowDistance = 2
 
-    whiteMsg = '{:} ({:})'.format(data['players']['white']['userId'], data['players']['white']['rating'])
+    whiteMsg = '{:} ({:})'.format(whitePlayer, whiteElo)
     w, h = draw.textsize(whiteMsg, font=font)
     draw.text(((size-w)/2 + dropShadowDistance,(size-h)/2 - 20 + dropShadowDistance), whiteMsg, fill=black, font=font)
 
-    blackMsg = '{:} ({:})'.format(data['players']['black']['userId'], data['players']['black']['rating'])
+    blackMsg = '{:} ({:})'.format(blackPlayer, blackElo)
     w, h = draw.textsize(blackMsg, font=font)
     draw.text(((size-w)/2 + dropShadowDistance,(size-h)/2 + 20 + dropShadowDistance), blackMsg, fill=black, font=font)
 
     ## Player Text
-    whiteMsg = '{:} ({:})'.format(data['players']['white']['userId'], data['players']['white']['rating'])
+    whiteMsg = '{:} ({:})'.format(whitePlayer, whiteElo)
     w, h = draw.textsize(whiteMsg, font=font)
     draw.text(((size-w)/2,(size-h)/2 - 20), whiteMsg, fill=white, font=font)
 
-    blackMsg = '{:} ({:})'.format(data['players']['black']['userId'], data['players']['black']['rating'])
+    blackMsg = '{:} ({:})'.format(blackPlayer, blackElo)
     w, h = draw.textsize(blackMsg, font=font)
     draw.text(((size-w)/2,(size-h)/2 + 20), blackMsg, fill=white, font=font)
 
